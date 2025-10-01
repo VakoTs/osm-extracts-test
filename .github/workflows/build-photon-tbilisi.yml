@@ -96,7 +96,10 @@ jobs:
 
       - name: Create archive
         run: |
-          tar -cjf photon-db-tbilisi-${{ steps.version.outputs.version }}.tar.bz2 photon_data
+          # Archive only the inner photon_data directory contents
+          cd photon_data
+          tar -cjf ../photon-db-tbilisi-${{ steps.version.outputs.version }}.tar.bz2 photon_data
+          cd ..
           ls -lh photon-db-tbilisi-*.tar.bz2
 
       - name: Create release
