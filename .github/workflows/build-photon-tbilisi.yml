@@ -40,12 +40,14 @@ jobs:
           docker run -d --name postgres \
             -e POSTGRES_USER=nominatim \
             -e POSTGRES_PASSWORD=nominatim \
-            -e POSTGRES_DB=nominatim \
             -p 5432:5432 \
             postgres:14-alpine
 
           # Wait for PostgreSQL to be ready
           timeout 60 bash -c 'until docker exec postgres pg_isready -U nominatim; do sleep 2; done'
+
+          # Create database
+          docker exec postgres psql -U nominatim -c "CREATE DATABASE nominatim;"
 
       - name: Run Nominatim import
         run: |
