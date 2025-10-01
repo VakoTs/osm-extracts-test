@@ -28,7 +28,7 @@ jobs:
 
       - name: Download Georgia OSM data
         run: |
-          wget https://download.geofabrik.de/asia/georgia-latest.osm.pbf
+          wget https://download.geofabrik.de/europe/georgia-latest.osm.pbf
 
       - name: Extract Tbilisi bbox
         run: |
