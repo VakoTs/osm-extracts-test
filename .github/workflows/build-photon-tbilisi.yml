@@ -49,11 +49,6 @@ jobs:
           # Wait for PostgreSQL to be ready
           timeout 60 bash -c 'until docker exec postgres pg_isready -U nominatim; do sleep 2; done'
 
-          # Drop and recreate database to ensure clean state
-          # Connect to postgres database to drop nominatim
-          docker exec postgres psql -U nominatim -d postgres -c "DROP DATABASE IF EXISTS nominatim;"
-          docker exec postgres psql -U nominatim -d postgres -c "CREATE DATABASE nominatim;"
-
       - name: Run Nominatim import
         run: |
           # Clean up any existing nominatim container
