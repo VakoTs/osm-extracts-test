@@ -2,8 +2,8 @@ name: Build Photon Tbilisi Data
 
 on:
   schedule:
-    - cron: '0 0 * * 0'  # Weekly on Sunday at midnight UTC
-  workflow_dispatch:  # Manual trigger
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
 
 jobs:
   build-photon-data:
@@ -37,6 +37,9 @@ jobs:
 
       - name: Start PostgreSQL
         run: |
+          # Clean up any existing containers
+          docker rm -f postgres || true
+
           docker run -d --name postgres \
             -e POSTGRES_USER=nominatim \
             -e POSTGRES_PASSWORD=nominatim \
@@ -46,8 +49,8 @@ jobs:
           # Wait for PostgreSQL to be ready
           timeout 60 bash -c 'until docker exec postgres pg_isready -U nominatim; do sleep 2; done'
 
-          # Create database
-          docker exec postgres psql -U nominatim -c "CREATE DATABASE nominatim;"
+          # Create database (ignore error if exists)
+          docker exec postgres psql -U nominatim -c "CREATE DATABASE nominatim;" || true
 
       - name: Run Nominatim import
         run: |
