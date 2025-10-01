@@ -35,7 +35,7 @@ jobs:
           osmium extract --bbox 44.65,41.60,45.05,41.75 georgia-latest.osm.pbf -o tbilisi.osm.pbf
           ls -lh tbilisi.osm.pbf
 
-      - name: Start PostgreSQL
+      - name: Start PostgreSQL with PostGIS
         run: |
           # Clean up any existing containers
           docker rm -f postgres || true
@@ -45,7 +45,7 @@ jobs:
             -e POSTGRES_PASSWORD=nominatim \
             -e POSTGRES_DB=postgres \
             -p 5432:5432 \
-            postgres:14-alpine
+            postgis/postgis:14-3.3-alpine
 
           # Wait for PostgreSQL to be ready
           timeout 60 bash -c 'until docker exec postgres pg_isready -U nominatim; do sleep 2; done'
