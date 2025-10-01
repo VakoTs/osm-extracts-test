@@ -43,6 +43,7 @@ jobs:
           docker run -d --name postgres \
             -e POSTGRES_USER=nominatim \
             -e POSTGRES_PASSWORD=nominatim \
+            -e POSTGRES_DB=postgres \
             -p 5432:5432 \
             postgres:14-alpine
 
