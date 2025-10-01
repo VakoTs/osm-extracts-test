@@ -15,14 +15,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Calculate version number
+      - name: Set release info
         id: version
         run: |
-          # Get latest release version, or start at 1.0 if none exists
-          LATEST=$(gh release list --repo ${{ github.repository }} --limit 1 | grep -oP 'photon-tbilisi-v\K[\d.]+' || echo "0.99")
-          NEW_VERSION=$(echo "$LATEST + 0.01" | bc)
-          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          echo "tag=photon-tbilisi-v$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "tag=photon-tbilisi-latest" >> $GITHUB_OUTPUT
+          echo "filename=photon-db-tbilisi-latest" >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ github.token }}
 
@@ -87,7 +84,7 @@ jobs:
             -database nominatim \
             -user nominatim \
             -password nominatim \
-            -languages ka \
+            -languages en,ka,ro,hu \
             -data-dir photon_data
 
           # Verify the data was created
@@ -98,16 +95,21 @@ jobs:
         run: |
           # Archive only the inner photon_data directory contents
           cd photon_data
-          tar -cjf ../photon-db-tbilisi-${{ steps.version.outputs.version }}.tar.bz2 photon_data
+          tar -cjf ../${{ steps.version.outputs.filename }}.tar.bz2 photon_data
           cd ..
-          ls -lh photon-db-tbilisi-*.tar.bz2
+          ls -lh ${{ steps.version.outputs.filename }}.tar.bz2
 
-      - name: Create release
+      - name: Create or update release
         run: |
+          # Delete existing release and tag if they exist
+          gh release delete ${{ steps.version.outputs.tag }} --yes || true
+          git push --delete origin ${{ steps.version.outputs.tag }} || true
+
+          # Create new release
           gh release create ${{ steps.version.outputs.tag }} \
-            photon-db-tbilisi-${{ steps.version.outputs.version }}.tar.bz2 \
-            --title "Photon Tbilisi Data v${{ steps.version.outputs.version }}" \
-            --notes "Photon geocoding database for Tbilisi, Georgia (bbox: 44.65,41.60,45.05,41.75) - Georgian language only. Generated from OSM data on $(date +'%Y-%m-%d')."
+            ${{ steps.version.outputs.filename }}.tar.bz2 \
+            --title "Photon Tbilisi Data" \
+            --notes "Photon geocoding database for Tbilisi, Georgia (bbox: 44.65,41.60,45.05,41.75). Languages: en, ka, ro, hu. Generated from OSM data on $(date +'%Y-%m-%d')."
         env:
           GH_TOKEN: ${{ github.token }}
 
