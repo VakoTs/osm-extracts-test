@@ -26,12 +26,16 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y wget bzip2
+          sudo apt-get install -y osmium-tool wget bzip2
 
       - name: Download Georgia OSM data
         run: |
           wget https://download.geofabrik.de/europe/georgia-latest.osm.pbf
-          ls -lh georgia-latest.osm.pbf
+
+      - name: Extract Tbilisi bbox
+        run: |
+          osmium extract --bbox 44.65,41.60,45.05,41.75 georgia-latest.osm.pbf -o tbilisi.osm.pbf
+          ls -lh tbilisi.osm.pbf
 
       - name: Start PostgreSQL with PostGIS
         run: |
@@ -58,13 +62,13 @@ jobs:
 
           docker run --rm --name nominatim \
             --network host \
-            -e PBF_PATH=/data/georgia-latest.osm.pbf \
+            -e PBF_PATH=/data/tbilisi.osm.pbf \
             -e NOMINATIM_PASSWORD=nominatim \
             -e NOMINATIM_DATABASE_DSN="pgsql:host=localhost;port=5432;user=nominatim;password=nominatim;dbname=nominatim" \
             -e NOMINATIM_TOKENIZER=icu \
             -v $(pwd):/data \
             mediagis/nominatim:4.4 \
-            sh -c "nominatim import --osm-file /data/georgia-latest.osm.pbf --threads 2"
+            sh -c "nominatim import --osm-file /data/tbilisi.osm.pbf --threads 2"
 
       - name: Download Photon
         run: |
@@ -104,8 +108,8 @@ jobs:
           # Create new release
           gh release create ${{ steps.version.outputs.tag }} \
             ${{ steps.version.outputs.filename }}.tar.bz2 \
-            --title "Photon Georgia Data" \
-            --notes "Photon geocoding database for Georgia (full country). Languages: en, ka, ro, hu, default. Generated from OSM data on $(date +'%Y-%m-%d')."
+            --title "Photon Tbilisi Data" \
+            --notes "Photon geocoding database for Tbilisi, Georgia (bbox: 44.65,41.60,45.05,41.75). Languages: en, ka, ro, hu. Generated from OSM data on $(date +'%Y-%m-%d')."
         env:
           GH_TOKEN: ${{ github.token }}
 
