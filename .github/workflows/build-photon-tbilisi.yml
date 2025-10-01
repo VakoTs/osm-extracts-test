@@ -90,6 +90,10 @@ jobs:
             -languages ka \
             -data-dir photon_data
 
+          # Verify the data was created
+          ls -la photon_data/
+          du -sh photon_data/
+
       - name: Create archive
         run: |
           tar -cjf photon-db-tbilisi-${{ steps.version.outputs.version }}.tar.bz2 photon_data
