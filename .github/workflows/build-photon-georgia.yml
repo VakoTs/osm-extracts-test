@@ -36,31 +36,31 @@ jobs:
       - name: Start PostgreSQL with PostGIS
         run: |
           # Clean up any existing containers
-          docker rm -f postgres || true
+          docker rm -f postgres-georgia || true
 
-          docker run -d --name postgres \
+          docker run -d --name postgres-georgia \
             -e POSTGRES_USER=nominatim \
             -e POSTGRES_PASSWORD=nominatim \
             -e POSTGRES_DB=postgres \
-            -p 5432:5432 \
+            -p 5433:5432 \
             postgis/postgis:14-3.3-alpine
 
           # Wait for PostgreSQL to be ready
-          timeout 60 bash -c 'until docker exec postgres pg_isready -U nominatim; do sleep 2; done'
+          timeout 60 bash -c 'until docker exec postgres-georgia pg_isready -U nominatim; do sleep 2; done'
 
           # Create www-data user for Nominatim
-          docker exec postgres psql -U nominatim -d postgres -c "CREATE USER \"www-data\";"
+          docker exec postgres-georgia psql -U nominatim -d postgres -c "CREATE USER \"www-data\";"
 
       - name: Run Nominatim import
         run: |
           # Clean up any existing nominatim container
-          docker rm -f nominatim || true
+          docker rm -f nominatim-georgia || true
 
-          docker run --rm --name nominatim \
+          docker run --rm --name nominatim-georgia \
             --network host \
             -e PBF_PATH=/data/georgia-latest.osm.pbf \
             -e NOMINATIM_PASSWORD=nominatim \
-            -e NOMINATIM_DATABASE_DSN="pgsql:host=localhost;port=5432;user=nominatim;password=nominatim;dbname=nominatim" \
+            -e NOMINATIM_DATABASE_DSN="pgsql:host=localhost;port=5433;user=nominatim;password=nominatim;dbname=nominatim" \
             -e NOMINATIM_TOKENIZER=icu \
             -v $(pwd):/data \
             mediagis/nominatim:4.4 \
@@ -76,7 +76,7 @@ jobs:
           java -Xmx4g -jar photon.jar \
             -nominatim-import \
             -host localhost \
-            -port 5432 \
+            -port 5433 \
             -database nominatim \
             -user nominatim \
             -password nominatim \
@@ -112,5 +112,5 @@ jobs:
       - name: Cleanup
         if: always()
         run: |
-          docker stop postgres nominatim || true
-          docker rm postgres nominatim || true
+          docker stop postgres-georgia nominatim-georgia || true
+          docker rm postgres-georgia nominatim-georgia || true
