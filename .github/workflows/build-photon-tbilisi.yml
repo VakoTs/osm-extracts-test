@@ -2,8 +2,8 @@ name: Build Photon Tbilisi Data
 
 on:
   schedule:
-    - cron: '0 0 * * 0'
-  workflow_dispatch:
+    - cron: '0 0 * * 0'  # Weekly on Sunday at midnight UTC
+  workflow_dispatch:  # Manual trigger
 
 jobs:
   build-photon-data:
@@ -32,9 +32,7 @@ jobs:
 
       - name: Extract Tbilisi bbox
         run: |
-          osmium extract --bbox 44.65,41.60,45.05,41.75 \
-            georgia-latest.osm.pbf \
-            -o tbilisi.osm.pbf
+          osmium extract --bbox 44.65,41.60,45.05,41.75 georgia-latest.osm.pbf -o tbilisi.osm.pbf
           ls -lh tbilisi.osm.pbf
 
       - name: Start PostgreSQL
